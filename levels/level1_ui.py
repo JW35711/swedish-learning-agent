@@ -150,6 +150,13 @@ class Level1UI:
                                     fg="black",
                                     font=("Arial", 12))
         self.score_label.pack(padx=20)
+
+        self.lives_label = tk.Label(self.bottom_left_frame,
+                                    text=f"Lives: {self.game_logic.fetch_lives()}",
+                                    bg=self.top_bar_color,
+                                    fg="black",
+                                    font=("Arial", 12))
+        self.lives_label.pack(padx=20)
     
         # Center: Hint
         self.bottom_center_frame = tk.Frame(self.bottom_content_frame, bg=self.top_bar_color)
@@ -162,9 +169,9 @@ class Level1UI:
                                      fg="black",
                                      width=self.sizex//50,
                                      height=self.sizey//1080,
-                                     command=self.game_logic.provide_hint())
+                                     command=self.show_hint)
         self.hint_button.pack(anchor="center")
-    
+
         # Right: Home button
         self.bottom_right_frame = tk.Frame(self.bottom_content_frame, bg=self.top_bar_color)
         self.bottom_right_frame.pack(side="right")
@@ -178,6 +185,9 @@ class Level1UI:
                                      height=self.sizey//1080,
                                      command=self.back_to_menu_callback)
         self.home_button.pack(padx=20)
+
+    def show_hint(self):
+        messagebox.showinfo("Hint", self.game_logic.provide_hint())
 
     def load_question(self):
         question_data = self.game_logic.fetch_question(self.level)
@@ -211,7 +221,7 @@ class Level1UI:
 
     def check_answer(self, index):
         selected_answer = self.option_buttons[index].cget("text")
-        is_correct, self.score = self.game_logic.submit_answer(selected_answer)
+        is_correct, self.score, game_over = self.game_logic.submit_answer(selected_answer)
         if is_correct:
             self.option_buttons[index].config(bg="green")
         else:
@@ -222,6 +232,13 @@ class Level1UI:
 
         
         self.score_label.config(text=f"Score: {self.score}")
+        self.lives_label.config(text=f"Lives: {self.game_logic.fetch_lives()}")
+
+        if game_over:
+            messagebox.showinfo("Game Over", f"You have no lives left.\nYour score: {self.score}")
+            self.game_logic.end_game()
+            self.back_to_menu_callback()
+            return self.score
 
         new_level = self.game_logic.update_level(self.score)
         if new_level == self.level:

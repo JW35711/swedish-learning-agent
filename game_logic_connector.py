@@ -64,8 +64,12 @@ class GameLogicConnector:
         """Fetch the current score from the backend."""
         return self.game.game_state.score.get_score()
 
+    def fetch_lives(self):
+        """Return the number of lives remaining in the current game."""
+        return self.game.lives
+
     def submit_answer(self, user_answer):
-        """Submit the user's answer."""
+        """Submit an answer and report whether it exhausted the player's lives."""
         if self.validate_answer(user_answer):
             # Update game state for correct answer:
             self.game.game_state.correct_answer()
@@ -73,8 +77,10 @@ class GameLogicConnector:
         else:
             # Update game state for incorrect answer:
             self.game.game_state.wrong_answer()
+            self.game.lives = max(0, self.game.lives - 1)
             is_correct = False
-        return is_correct, self.fetch_score()
+        game_over = self.game.lives == 0
+        return is_correct, self.fetch_score(), game_over
 
     def update_level(self, score):
         """Update the user level based on their score."""
@@ -86,6 +92,7 @@ class GameLogicConnector:
     def end_game(self):
         """End the game session."""
         self.game.end_game()
+        self.game.lives = 3
         self.seen_questions.clear()
         
         

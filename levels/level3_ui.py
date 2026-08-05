@@ -20,6 +20,7 @@ class Level3UI:
         self.create_level_frame()
         self.create_home_button()
         self.create_score_label()
+        self.create_lives_label()
         self.create_question_label()
         self.create_input_field()
         self.create_submit_button()
@@ -39,6 +40,10 @@ class Level3UI:
     def create_score_label(self):
         self.score_label = tk.Label(self.level_frame, text=f"Score: {self.score}", font=self.font, fg="#8B0000", bg="white")
         self.score_label.place(relx=0.1, rely=0.05, anchor="w")
+
+    def create_lives_label(self):
+        self.lives_label = tk.Label(self.level_frame, text=f"Lives: {self.game_logic.fetch_lives()}", font=self.font, fg="#8B0000", bg="white")
+        self.lives_label.place(relx=0.1, rely=0.11, anchor="w")
 
     def create_question_label(self):
         self.question_label = tk.Label(self.level_frame, text="", font=("Arial", 28), fg="#8B0000", bg="white")
@@ -91,7 +96,7 @@ class Level3UI:
 
     def check_answer(self):
         selected_answer = self.answer_entry.get()
-        is_correct, self.score = self.game_logic.submit_answer(selected_answer)
+        is_correct, self.score, game_over = self.game_logic.submit_answer(selected_answer)
 
         if is_correct:
             self.answer_entry.config(bg="green")
@@ -99,6 +104,13 @@ class Level3UI:
             self.answer_entry.config(bg="red")
 
         self.score_label.config(text=f"Score: {self.score}")
+        self.lives_label.config(text=f"Lives: {self.game_logic.fetch_lives()}")
+
+        if game_over:
+            messagebox.showinfo("Game Over", f"You have no lives left.\nYour score: {self.score}")
+            self.game_logic.end_game()
+            self.back_to_menu_callback()
+            return
 
         new_level = self.game_logic.update_level(self.score)
         if new_level <= self.level:

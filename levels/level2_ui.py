@@ -20,6 +20,7 @@ class Level2UI:
         self.create_level_frame()
         self.create_home_button()
         self.create_score_label()
+        self.create_lives_label()
         self.create_clock_label()
         self.create_question_label()
         self.create_input_field()
@@ -38,6 +39,10 @@ class Level2UI:
     def create_score_label(self):
         self.score_label = tk.Label(self.level_frame, text=f"Score: {self.score}", font=self.font, fg="#8B0000", bg="white")
         self.score_label.place(relx=0.1, rely=0.05, anchor="w")
+
+    def create_lives_label(self):
+        self.lives_label = tk.Label(self.level_frame, text=f"Lives: {self.game_logic.fetch_lives()}", font=self.font, fg="#8B0000", bg="white")
+        self.lives_label.place(relx=0.1, rely=0.11, anchor="w")
 
     def create_clock_label(self):
         if os.path.isfile(self.clock_image_path):
@@ -106,13 +111,22 @@ class Level2UI:
     
     def submit_answer(self):
         answer = self.user_input.get().strip()
-        is_correct, self.score = self.game_logic.submit_answer(answer)
+        is_correct, self.score, game_over = self.game_logic.submit_answer(answer)
         self.score_label.config(text=f"Score: {self.score}")
+        self.lives_label.config(text=f"Lives: {self.game_logic.fetch_lives()}")
         if is_correct:
             messagebox.showinfo("Correct!", "Well done!")
+        elif game_over:
+            messagebox.showinfo("Game Over", f"You have no lives left.\nYour score: {self.score}")
         else:
             messagebox.showinfo("Wrong!", "Try again.")
         self.user_input.delete(0, tk.END)
+
+        if game_over:
+            self.game_logic.end_game()
+            self.back_to_menu_callback()
+            return
+
         new_level = self.game_logic.update_level(self.score)
         if new_level <= self.level:
             self.load_question()
